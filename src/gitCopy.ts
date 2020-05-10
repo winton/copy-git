@@ -1,6 +1,7 @@
 import path from "path"
 import tmp from "tmp-promise"
 import spawn from "./spawn"
+import copyConfig from "./copyConfig"
 
 export class GitCopy {
   async copy(args: string[]) {
@@ -21,7 +22,7 @@ export class GitCopy {
   async copyFromGit(
     repo: string,
     dest: string,
-    ...src: string[]
+    ...source: string[]
   ) {
     const tmpDir = await tmp.dir({
       unsafeCleanup: true,
@@ -46,8 +47,8 @@ export class GitCopy {
 
     const cpCmd = /* bash */ `
       cp -r \
-        ${src.join(" ")} \
-        ${path.resolve(process.cwd(), dest)}
+        ${source.join(" ")} \
+        ${path.resolve(dest)}
     `
 
     await spawn.run("sh", {
@@ -56,13 +57,16 @@ export class GitCopy {
       stdout: true,
     })
 
-    await tmpDir.cleanup()
+    await Promise.all([tmpDir.cleanup(), copyConfig.load()])
+
+    copyConfig.copy(repo, dest, source)
+    await copyConfig.save()
   }
 
   async copyFromLocal(
     repo: string,
     dest: string,
-    ...src: string[]
+    ...source: string[]
   ) {}
 }
 
