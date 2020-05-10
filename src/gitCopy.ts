@@ -9,24 +9,29 @@ export class GitCopy {
   tmpCache: Record<string, tmp.DirectoryResult> = {}
 
   async copy(args: string[]) {
-    if (!args.length) {
-      await this.replayCopies()
-    } else if (args[0].match(GIT_REGEX)) {
+    if (args[0]?.match(GIT_REGEX)) {
       const dest = args.pop()
       await this.copyFromGit(args[0], dest, args.slice(1))
-    } else if (args[args.length - 1].match(GIT_REGEX)) {
+    } else if (args[args.length - 1]?.match(GIT_REGEX)) {
       const repo = args.pop()
       const dest = args.pop()
       await this.copyFromLocal(repo, dest, args)
+    } else {
+      await this.replayCopies(args)
     }
   }
 
   async copyFromGitBasic(
     repo: string,
     dest: string,
-    source: string[]
+    source: string[],
+    match: string[] = undefined
   ) {
     const tmpDir = await this.clone(repo)
+
+    if (match && match.length) {
+      source = await this.match(tmpDir.path, match, source)
+    }
 
     const cpCmd = /* bash */ `
       cp -r \
@@ -97,12 +102,17 @@ export class GitCopy {
     return tmpDir
   }
 
-  async replayCopies() {
+  async replayCopies(match: string[]) {
     const config = await copyConfig.load()
 
     for (const repo in config) {
       for (const { dest, source } of config[repo].copies) {
-        await this.copyFromGitBasic(repo, dest, source)
+        await this.copyFromGitBasic(
+          repo,
+          dest,
+          source,
+          match
+        )
       }
     }
 
@@ -111,6 +121,39 @@ export class GitCopy {
         tmpDir.cleanup()
       )
     )
+  }
+
+  async match(
+    cwd: string,
+    match: string[],
+    source: string[]
+  ) {
+    const [matches, sources] = await Promise.all([
+      this.ls(cwd, match),
+      this.ls(cwd, source),
+    ])
+
+    const matchCache = {}
+    const sourceCache = {}
+
+    matches.forEach((x) => (matchCache[x] = x))
+    sources.forEach((x) => (sourceCache[x] = x))
+
+    return Object.keys(matchCache)
+      .map((key) => sourceCache[key])
+      .filter((x) => x)
+  }
+
+  async ls(cwd: string, source: string[]) {
+    const { code, out } = await spawn.run("sh", {
+      args: [
+        "-c",
+        `export CLICOLOR=""; ls -1 ${source.join(" ")}`,
+      ],
+      cwd,
+    })
+
+    return code === 0 ? out.trim().split("\r\n") : []
   }
 }
 

@@ -27,7 +27,7 @@ Run `git-copy` without arguments within a directory that has a `.gitcopy.yml` fi
 git-copy
 ```
 
-You may also specify specific paths to update:
+You may also specify paths to update:
 
 ```bash
 git-copy src/*

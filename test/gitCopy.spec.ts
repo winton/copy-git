@@ -2,17 +2,22 @@ import { join } from "path"
 import expect from "./expect"
 import spawn from "../src/spawn"
 import copyConfig from "../src/copyConfig"
+import gitCopy from "../src/gitCopy"
 
 const root = join(__dirname, "../")
 
-async function expectFixtureFiles() {
-  const { out } = await spawn.run("sh", {
-    args: ["-c", "ls *.ts"],
-    cwd: join(root, "test/fixture"),
-  })
-
-  expect(out).toBe(
-    "copyConfig.ts\texpect.ts\tgitCopy.ts\tspawn.ts\r\n"
+async function expectFixtureFiles(
+  files: string[] = undefined
+) {
+  expect(
+    await gitCopy.ls(join(root, "test/fixture"), ["*.ts"])
+  ).toEqual(
+    files || [
+      "copyConfig.ts",
+      "expect.ts",
+      "gitCopy.ts",
+      "spawn.ts",
+    ]
   )
 }
 
@@ -67,5 +72,18 @@ describe("gitCopy", () => {
     })
 
     await expectFixtureFiles()
-  }).timeout(5000)
+
+    await spawn.run("sh", {
+      args: ["-c", "rm *.ts"],
+      cwd: join(root, "test/fixture"),
+    })
+
+    await spawn.run(join(root, "bin/git-copy"), {
+      args: ["src/gitCopy.ts"],
+      cwd,
+      stdout: true,
+    })
+
+    await expectFixtureFiles(["gitCopy.ts"])
+  }).timeout(10000)
 })
