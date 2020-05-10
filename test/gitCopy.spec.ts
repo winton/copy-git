@@ -5,6 +5,17 @@ import copyConfig from "../src/copyConfig"
 
 const root = join(__dirname, "../")
 
+async function expectFixtureFiles() {
+  const { out } = await spawn.run("sh", {
+    args: ["-c", "ls *.ts"],
+    cwd: join(root, "test/fixture"),
+  })
+
+  expect(out).toBe(
+    "copyConfig.ts\texpect.ts\tgitCopy.ts\tspawn.ts\r\n"
+  )
+}
+
 describe("gitCopy", () => {
   beforeEach(async () => {
     await spawn.run("sh", {
@@ -27,14 +38,7 @@ describe("gitCopy", () => {
       stdout: true,
     })
 
-    const { out } = await spawn.run("sh", {
-      args: ["-c", "ls *.ts"],
-      cwd: join(root, "test/fixture"),
-    })
-
-    expect(out).toBe(
-      "copyConfig.ts\texpect.ts\tgitCopy.ts\tspawn.ts\r\n"
-    )
+    await expectFixtureFiles()
 
     copyConfig.configPath = join(cwd, ".gitcopy.yml")
 
@@ -48,5 +52,17 @@ describe("gitCopy", () => {
         ],
       },
     })
-  })
+
+    await spawn.run("sh", {
+      args: ["-c", "rm *.ts"],
+      cwd: join(root, "test/fixture"),
+    })
+
+    await spawn.run(join(root, "bin/git-copy"), {
+      cwd,
+      stdout: true,
+    })
+
+    await expectFixtureFiles()
+  }).timeout(5000)
 })

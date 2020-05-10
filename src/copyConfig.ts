@@ -18,7 +18,9 @@ export class CopyConfig {
 
     const raw = await fs.readFile(this.configPath)
 
-    return (this.config = yaml.load(raw.toString()))
+    this.config = yaml.load(raw.toString())
+
+    return this.config
   }
 
   copy(repo: string, dest: string, source: string[]) {
