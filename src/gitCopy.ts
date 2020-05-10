@@ -1,7 +1,7 @@
 import path from "path"
 import tmp from "tmp-promise"
 import spawn from "./spawn"
-import copyConfig from "./copyConfig"
+import copyConfig, { CopyConfigRecord } from "./copyConfig"
 
 export const GIT_REGEX = /\.git(\/|$)/
 
@@ -11,23 +11,30 @@ export class GitCopy {
   async copy(args: string[]) {
     if (args[0]?.match(GIT_REGEX)) {
       const dest = args.pop()
-      await this.copyFromGit(args[0], dest, args.slice(1))
+
+      await this.copyFromGit({
+        repo: args[0],
+        dest,
+        source: args.slice(1),
+      })
     } else if (args[args.length - 1]?.match(GIT_REGEX)) {
       const repo = args.pop()
       const dest = args.pop()
-      await this.copyFromLocal(repo, dest, args)
+
+      await this.copyFromLocal({ repo, dest, source: args })
     } else {
       await this.replayCopies(args)
     }
   }
 
   async copyFromGitBasic(
-    repo: string,
-    dest: string,
-    source: string[],
+    record: CopyConfigRecord,
     match: string[] = undefined
   ) {
+    const { dest, repo } = record
     const tmpDir = await this.clone(repo)
+
+    let { source } = record
 
     if (match && match.length) {
       source = await this.match(tmpDir.path, match, source)
@@ -52,28 +59,16 @@ export class GitCopy {
     return tmpDir
   }
 
-  async copyFromGit(
-    repo: string,
-    dest: string,
-    source: string[]
-  ) {
-    const tmpDir = await this.copyFromGitBasic(
-      repo,
-      dest,
-      source
-    )
+  async copyFromGit(record: CopyConfigRecord) {
+    const tmpDir = await this.copyFromGitBasic(record)
 
     await Promise.all([tmpDir.cleanup(), copyConfig.load()])
 
-    copyConfig.copy(repo, dest, source)
+    copyConfig.copy(record)
     await copyConfig.save()
   }
 
-  async copyFromLocal(
-    repo: string,
-    dest: string,
-    source: string[]
-  ) {}
+  async copyFromLocal(record: CopyConfigRecord) {}
 
   async clone(repo: string) {
     if (this.tmpCache[repo]) {
@@ -109,8 +104,8 @@ export class GitCopy {
   async replayCopies(match: string[]) {
     const config = await copyConfig.load()
 
-    for (const { dest, repo, source } of config) {
-      await this.copyFromGitBasic(repo, dest, source, match)
+    for (const record of config) {
+      await this.copyFromGitBasic(record, match)
     }
 
     await Promise.all(

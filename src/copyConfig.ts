@@ -6,7 +6,7 @@ export interface CopyConfigRecord {
   repo: string
   source: string[]
   dest: string
-  processors?: Record<string, any>
+  transform?: Record<string, any>[]
 }
 
 export class CopyConfig {
@@ -19,13 +19,14 @@ export class CopyConfig {
     }
 
     const raw = await fs.readFile(this.configPath)
-
     this.config = yaml.load(raw.toString())
 
     return this.config
   }
 
-  copy(repo: string, dest: string, source: string[]) {
+  copy(record: CopyConfigRecord) {
+    const { dest, repo, source } = record
+
     this.config = this.config.concat({
       dest,
       repo,
