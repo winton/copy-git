@@ -1,0 +1,63 @@
+{
+  "name": "universal-component",
+  "version": "0.0.1",
+  "description": "Web components that seamlessly blend client and server",
+  "bin": {},
+  "scripts": {
+    "build": "tsc -b",
+    "watch": "tsc -b -w",
+    "release": "./bin/release",
+    "start": "node -e 'require(\"./dist/cjs/example/server\").server()'",
+    "test": "mocha",
+    "update": "ncu -u"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/winton/universal-component.git"
+  },
+  "author": "Winton Welsh <mail@wintoni.us>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/winton/universal-component/issues"
+  },
+  "homepage": "https://github.com/winton/universal-component#readme",
+  "devDependencies": {
+    "@types/mocha": "7.0.2",
+    "@types/node": "13.13.4",
+    "@typescript-eslint/eslint-plugin": "2.31.0",
+    "@typescript-eslint/parser": "2.31.0",
+    "eslint": "6.8.0",
+    "eslint-config-prettier": "6.11.0",
+    "eslint-plugin-prettier": "3.1.3",
+    "expect": "26.0.0",
+    "husky": "4.2.5",
+    "lint-staged": "10.2.2",
+    "mocha": "7.1.2",
+    "npm-check-updates": "4.1.2",
+    "prettier": "2.0.5",
+    "release-it": "13.5.8",
+    "ts-node": "8.10.1",
+    "typescript": "3.8.3"
+  },
+  "dependencies": {
+    "node-pty": "0.9.0",
+    "source-map-support": "0.5.19",
+    "tmp-promise": "2.1.1"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged && npm test"
+    }
+  },
+  "lint-staged": {
+    "*.{css,json,md}": [
+      "prettier --write",
+      "git add"
+    ],
+    "*.{js,jsx,ts}": [
+      "eslint --ignore-path .gitignore --fix",
+      "git add"
+    ]
+  },
+  "private": true
+}

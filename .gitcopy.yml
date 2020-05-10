@@ -1,0 +1,9 @@
+git@github.com:winton/micro-app.git:
+  paths:
+    - src: src/gitCopy.ts
+      dst: src/coolCopy.ts
+
+  processors:
+    - type: findReplace
+      find: GitCopy
+      replace: CoolCopy

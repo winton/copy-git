@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+cd "$(dirname "$0")/../"
+
+PRERELEASE=${1:-dev}
+
+npm run build
+git status
+
+if [ "$PRERELEASE" == "prod" ]; then
+  npx release-it minor --ci --no-npm.publish
+elif [ "$PRERELEASE" == "dev" ]; then
+  npx release-it patch --ci --no-npm.publish
+else
+  npx release-it patch --ci --no-npm.publish --preRelease=$PRERELEASE
+fi
