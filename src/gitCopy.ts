@@ -139,10 +139,7 @@ export class GitCopy {
 
   async ls(cwd: string, source: string[]) {
     const { code, out } = await spawn.run("sh", {
-      args: [
-        "-c",
-        `export CLICOLOR=""; ls -1 ${source.join(" ")}`,
-      ],
+      args: ["-c", `CLICOLOR="" ls -1 ${source.join(" ")}`],
       cwd,
     })
 
