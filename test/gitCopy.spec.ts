@@ -50,16 +50,13 @@ describe("gitCopy", () => {
 
     copyConfig.configPath = join(cwd, ".gitcopy.yml")
 
-    expect(await copyConfig.load()).toEqual({
-      "git@github.com:winton/git-copy.git": {
-        copies: [
-          {
-            dest: ".",
-            source: ["src/*.ts", "test/expect.ts"],
-          },
-        ],
+    expect(await copyConfig.load()).toEqual([
+      {
+        dest: ".",
+        source: ["src/*.ts", "test/expect.ts"],
+        repo: "git@github.com:winton/git-copy.git",
       },
-    })
+    ])
 
     await spawn.run("sh", {
       args: ["-c", "rm *.ts"],

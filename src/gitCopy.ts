@@ -105,15 +105,8 @@ export class GitCopy {
   async replayCopies(match: string[]) {
     const config = await copyConfig.load()
 
-    for (const repo in config) {
-      for (const { dest, source } of config[repo].copies) {
-        await this.copyFromGitBasic(
-          repo,
-          dest,
-          source,
-          match
-        )
-      }
+    for (const { dest, repo, source } of config) {
+      await this.copyFromGitBasic(repo, dest, source, match)
     }
 
     await Promise.all(
@@ -136,12 +129,12 @@ export class GitCopy {
     const matchCache = {}
     const sourceCache = {}
 
-    matches.forEach((x) => (matchCache[x] = x))
-    sources.forEach((x) => (sourceCache[x] = x))
+    matches.forEach((k) => (matchCache[k] = k))
+    sources.forEach((k) => (sourceCache[k] = k))
 
     return Object.keys(matchCache)
-      .map((key) => sourceCache[key])
-      .filter((x) => x)
+      .map((k) => sourceCache[k])
+      .filter((k) => k)
   }
 
   async ls(cwd: string, source: string[]) {
