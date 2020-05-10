@@ -1,9 +1,9 @@
 import { join } from "path"
 import fs from "fs-extra"
 import expect from "./expect"
-import spawn from "../src/spawn"
 import copyConfig from "../src/copyConfig"
-import gitCopy from "../src/gitCopy"
+import ls from "../src/ls"
+import spawn from "../src/spawn"
 
 const root = join(__dirname, "../")
 const fixture = join(root, "test/fixture")
@@ -11,7 +11,7 @@ const fixture = join(root, "test/fixture")
 async function expectFixtureFiles(
   files: string[] = undefined
 ) {
-  expect(await gitCopy.ls(fixture, ["*.ts"])).toEqual(
+  expect(await ls(fixture, ["*.ts"])).toEqual(
     files || [
       "copyConfig.ts",
       "expect.ts",

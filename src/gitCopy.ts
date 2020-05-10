@@ -3,6 +3,7 @@ import fs from "fs-extra"
 import tmp from "tmp-promise"
 
 import copyConfig, { CopyConfigRecord } from "./copyConfig"
+import ls from "./ls"
 import spawn from "./spawn"
 import * as transforms from "./transforms"
 
@@ -36,63 +37,29 @@ export class GitCopy {
     record: CopyConfigRecord,
     match: string[] = undefined
   ) {
-    let { source } = record
-
-    if (!source.length) {
+    if (!record.source.length) {
       return
     }
 
-    const { dest, repo, transform } = record
+    const { dest, repo } = record
     const tmpDir = await this.clone(repo)
 
     if (match && match.length) {
-      source = await this.match(tmpDir.path, match, source)
+      record.source = await this.match(
+        tmpDir.path,
+        match,
+        record.source
+      )
     }
 
-    if (!source.length) {
+    if (!record.source.length) {
       return
     }
 
-    let transformDir: tmp.DirectoryResult
-
-    if (transform) {
-      transformDir = await tmp.dir({
-        unsafeCleanup: true,
-      })
-
-      const transformCpCmd = /* bash */ `
-        cp -r \
-          ${source.join(" ")} \
-          ${transformDir.path}
-      `
-
-      await spawn.run("sh", {
-        args: ["-c", transformCpCmd],
-        cwd: tmpDir.path,
-        stdout: true,
-      })
-
-      const paths = await this.ls(transformDir.path)
-
-      for (const relPath of paths) {
-        const p = path.join(transformDir.path, relPath)
-        let out = (await fs.readFile(p)).toString()
-
-        for (const t of transform) {
-          if (transforms[t.type]) {
-            out = await transforms[t.type](out, p, t)
-          }
-        }
-
-        if (out) {
-          await fs.writeFile(p, out)
-        }
-      }
-    }
-
-    const sourcePaths = transformDir
-      ? transformDir.path + "/*"
-      : source.join(" ")
+    const {
+      sourcePaths,
+      transformDir,
+    } = await this.transform(record, tmpDir)
 
     const destCpCmd = /* bash */ `
       cp -r \
@@ -175,8 +142,8 @@ export class GitCopy {
     source: string[]
   ) {
     const [matches, sources] = await Promise.all([
-      this.ls(cwd, match),
-      this.ls(cwd, source),
+      ls(cwd, match),
+      ls(cwd, source),
     ])
 
     const matchCache = {}
@@ -190,13 +157,53 @@ export class GitCopy {
       .filter((k) => k)
   }
 
-  async ls(cwd: string, source: string[] = ["."]) {
-    const { code, out } = await spawn.run("sh", {
-      args: ["-c", `find ${source.join(" ")} -type f`],
-      cwd,
+  async transform(
+    record: CopyConfigRecord,
+    tmpDir: tmp.DirectoryResult
+  ) {
+    const { source, transform } = record
+
+    if (!transform) {
+      return { sourcePaths: source.join(" ") }
+    }
+
+    const transformDir = await tmp.dir({
+      unsafeCleanup: true,
     })
 
-    return code === 0 ? out.trim().split("\r\n") : []
+    const transformCpCmd = /* bash */ `
+        cp -r \
+          ${source.join(" ")} \
+          ${transformDir.path}
+      `
+
+    await spawn.run("sh", {
+      args: ["-c", transformCpCmd],
+      cwd: tmpDir.path,
+      stdout: true,
+    })
+
+    const paths = await ls(transformDir.path)
+
+    for (const relPath of paths) {
+      const p = path.join(transformDir.path, relPath)
+      let out = (await fs.readFile(p)).toString()
+
+      for (const t of transform) {
+        if (transforms[t.type]) {
+          out = await transforms[t.type](out, p, t)
+        }
+      }
+
+      if (out) {
+        await fs.writeFile(p, out)
+      }
+    }
+
+    return {
+      sourcePaths: transformDir.path + "/*",
+      transformDir,
+    }
   }
 }
 
