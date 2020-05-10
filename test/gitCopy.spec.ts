@@ -12,7 +12,7 @@ describe("gitCopy", () => {
     })
   })
 
-  it("copies from git", async () => {
+  it("copyFromGit", async () => {
     await spawn.run(join(root, "bin/git-copy"), {
       args: [
         "git@github.com:winton/git-copy.git",
@@ -22,5 +22,12 @@ describe("gitCopy", () => {
       cwd: join(root, "test/fixture"),
       stdout: true,
     })
+
+    const { out } = await spawn.run("sh", {
+      args: ["-c", "ls *.ts"],
+      cwd: join(root, "test/fixture"),
+    })
+
+    expect(out).toBe("gitCopy.ts\tspawn.ts\r\n")
   })
 })
