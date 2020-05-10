@@ -33,6 +33,10 @@ export class GitCopy {
       source = await this.match(tmpDir.path, match, source)
     }
 
+    if (!source.length) {
+      return
+    }
+
     const cpCmd = /* bash */ `
       cp -r \
         ${source.join(" ")} \
