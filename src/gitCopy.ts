@@ -53,23 +53,25 @@ export class GitCopy {
       return
     }
 
-    const transformDir = await tmp.dir({
-      unsafeCleanup: true,
-    })
-
-    const transformCpCmd = /* bash */ `
-      cp -r \
-        ${source.join(" ")} \
-        ${transformDir.path}
-    `
-
-    await spawn.run("sh", {
-      args: ["-c", transformCpCmd],
-      cwd: tmpDir.path,
-      stdout: true,
-    })
+    let transformDir: tmp.DirectoryResult
 
     if (transform) {
+      transformDir = await tmp.dir({
+        unsafeCleanup: true,
+      })
+
+      const transformCpCmd = /* bash */ `
+        cp -r \
+          ${source.join(" ")} \
+          ${transformDir.path}
+      `
+
+      await spawn.run("sh", {
+        args: ["-c", transformCpCmd],
+        cwd: tmpDir.path,
+        stdout: true,
+      })
+
       const paths = await this.ls(transformDir.path)
 
       for (const relPath of paths) {
@@ -88,9 +90,13 @@ export class GitCopy {
       }
     }
 
+    const sourcePaths = transformDir
+      ? transformDir.path + "/*"
+      : source.join(" ")
+
     const destCpCmd = /* bash */ `
       cp -r \
-        ${transformDir.path}/* \
+        ${sourcePaths} \
         ${path.resolve(dest)}
     `
 
@@ -100,7 +106,9 @@ export class GitCopy {
       stdout: true,
     })
 
-    await transformDir.cleanup()
+    if (transformDir) {
+      await transformDir.cleanup()
+    }
 
     return tmpDir
   }
