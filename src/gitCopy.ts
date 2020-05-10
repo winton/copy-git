@@ -23,7 +23,9 @@ export class GitCopy {
     dest: string,
     ...src: string[]
   ) {
-    const tmpDir = await tmp.dir()
+    const tmpDir = await tmp.dir({
+      unsafeCleanup: true,
+    })
     const split = repo.split("#")
 
     repo = split[0]
@@ -31,22 +33,27 @@ export class GitCopy {
     await spawn.run("git", {
       args: ["clone", repo, "."],
       cwd: tmpDir.path,
+      stdout: true,
     })
 
     if (split[1]) {
       await spawn.run("git", {
         args: ["checkout", split[1]],
         cwd: tmpDir.path,
+        stdout: true,
       })
     }
 
-    await spawn.run("cp", {
-      args: [
-        "-r",
-        ...src,
-        path.resolve(process.cwd(), dest),
-      ],
+    const cpCmd = /* bash */ `
+      cp -r \
+        ${src.join(" ")} \
+        ${path.resolve(process.cwd(), dest)}
+    `
+
+    await spawn.run("sh", {
+      args: ["-c", cpCmd],
       cwd: tmpDir.path,
+      stdout: true,
     })
 
     await tmpDir.cleanup()

@@ -12,7 +12,7 @@ npm install git-copy
 
 ```bash
 # git-copy [srcRepo] [srcPath...] [destPath]
-git-copy git@github.com:winton/git-copy.git src/*.ts src/gitCopy
+git-copy git@github.com:winton/git-copy.git "src/*.ts" src/gitCopy
 ```
 
 The `git-copy` command generates `.gitcopy.yml`, which keeps record of file sources and destinations.
