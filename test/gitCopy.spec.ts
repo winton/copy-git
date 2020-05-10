@@ -16,13 +16,16 @@ async function expectFixtureFiles() {
   )
 }
 
-describe("gitCopy", () => {
-  beforeEach(async () => {
-    await spawn.run("sh", {
-      args: ["-c", "rm *.ts .*.yml"],
-      cwd: join(root, "test/fixture"),
-    })
+async function clearFixture() {
+  await spawn.run("sh", {
+    args: ["-c", "rm *.ts .*.yml"],
+    cwd: join(root, "test/fixture"),
   })
+}
+
+describe("gitCopy", () => {
+  beforeEach(clearFixture)
+  after(clearFixture)
 
   it("copyFromGit", async () => {
     const cwd = join(root, "test/fixture")
