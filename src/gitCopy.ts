@@ -31,10 +31,14 @@ export class GitCopy {
     record: CopyConfigRecord,
     match: string[] = undefined
   ) {
+    let { source } = record
+
+    if (!source.length) {
+      return
+    }
+
     const { dest, repo } = record
     const tmpDir = await this.clone(repo)
-
-    let { source } = record
 
     if (match && match.length) {
       source = await this.match(tmpDir.path, match, source)
