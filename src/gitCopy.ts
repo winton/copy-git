@@ -1,6 +1,7 @@
 import path from "path"
 import fs from "fs-extra"
 import tmp from "tmp-promise"
+
 import copyConfig, { CopyConfigRecord } from "./copyConfig"
 import spawn from "./spawn"
 import * as transforms from "./transforms"
@@ -98,6 +99,8 @@ export class GitCopy {
       cwd: tmpDir.path,
       stdout: true,
     })
+
+    await transformDir.cleanup()
 
     return tmpDir
   }

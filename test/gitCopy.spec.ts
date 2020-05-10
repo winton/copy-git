@@ -17,6 +17,7 @@ async function expectFixtureFiles(
       "expect.ts",
       "gitCopy.ts",
       "spawn.ts",
+      "transforms.ts",
     ]
   )
 }
