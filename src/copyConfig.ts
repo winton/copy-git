@@ -34,6 +34,12 @@ export class CopyConfig {
     })
   }
 
+  transform(index: number, record: Record<string, any>) {
+    const config = this.config[index]
+    config.transform = config.transform || []
+    config.transform.push(record)
+  }
+
   async save() {
     await fs.writeFile(
       this.configPath,

@@ -1,7 +1,9 @@
 import path from "path"
+import fs from "fs-extra"
 import tmp from "tmp-promise"
-import spawn from "./spawn"
 import copyConfig, { CopyConfigRecord } from "./copyConfig"
+import spawn from "./spawn"
+import * as transforms from "./transforms"
 
 export const GIT_REGEX = /\.git(\/|$)/
 
@@ -9,6 +11,8 @@ export class GitCopy {
   tmpCache: Record<string, tmp.DirectoryResult> = {}
 
   async copy(args: string[]) {
+    args = args.concat([])
+
     if (args[0]?.match(GIT_REGEX)) {
       const dest = args.pop()
 
@@ -37,7 +41,7 @@ export class GitCopy {
       return
     }
 
-    const { dest, repo } = record
+    const { dest, repo, transform } = record
     const tmpDir = await this.clone(repo)
 
     if (match && match.length) {
@@ -48,14 +52,49 @@ export class GitCopy {
       return
     }
 
-    const cpCmd = /* bash */ `
+    const transformDir = await tmp.dir({
+      unsafeCleanup: true,
+    })
+
+    const transformCpCmd = /* bash */ `
       cp -r \
         ${source.join(" ")} \
+        ${transformDir.path}
+    `
+
+    await spawn.run("sh", {
+      args: ["-c", transformCpCmd],
+      cwd: tmpDir.path,
+      stdout: true,
+    })
+
+    if (transform) {
+      const paths = await this.ls(transformDir.path)
+
+      for (const relPath of paths) {
+        const p = path.join(transformDir.path, relPath)
+        let out = (await fs.readFile(p)).toString()
+
+        for (const t of transform) {
+          if (transforms[t.type]) {
+            out = await transforms[t.type](out, p, t)
+          }
+        }
+
+        if (out) {
+          await fs.writeFile(p, out)
+        }
+      }
+    }
+
+    const destCpCmd = /* bash */ `
+      cp -r \
+        ${transformDir.path}/* \
         ${path.resolve(dest)}
     `
 
     await spawn.run("sh", {
-      args: ["-c", cpCmd],
+      args: ["-c", destCpCmd],
       cwd: tmpDir.path,
       stdout: true,
     })
@@ -140,9 +179,9 @@ export class GitCopy {
       .filter((k) => k)
   }
 
-  async ls(cwd: string, source: string[]) {
+  async ls(cwd: string, source: string[] = ["."]) {
     const { code, out } = await spawn.run("sh", {
-      args: ["-c", `CLICOLOR="" ls -1 ${source.join(" ")}`],
+      args: ["-c", `find ${source.join(" ")} -type f`],
       cwd,
     })
 
