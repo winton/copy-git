@@ -32,7 +32,9 @@ describe("gitCopy", () => {
       cwd: join(root, "test/fixture"),
     })
 
-    expect(out).toBe("expect.ts\tgitCopy.ts\tspawn.ts\r\n")
+    expect(out).toBe(
+      "copyConfig.ts\texpect.ts\tgitCopy.ts\tspawn.ts\r\n"
+    )
 
     copyConfig.configPath = join(cwd, ".gitcopy.yml")
 
