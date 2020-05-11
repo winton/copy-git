@@ -1,26 +1,25 @@
 {
-  "name": "universal-component",
+  "name": "git-copy",
   "version": "0.0.1",
-  "description": "Web components that seamlessly blend client and server",
+  "description": "Copy files from external git repos and easily pull updates",
   "bin": {},
   "scripts": {
     "build": "tsc -b",
     "watch": "tsc -b -w",
     "release": "./bin/release",
-    "start": "node -e 'require(\"./dist/cjs/example/server\").server()'",
     "test": "mocha",
     "update": "ncu -u"
   },
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/winton/universal-component.git"
+    "url": "git+ssh://git@github.com/winton/git-copy.git"
   },
   "author": "Winton Welsh <mail@wintoni.us>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/winton/universal-component/issues"
+    "url": "https://github.com/winton/git-copy/issues"
   },
-  "homepage": "https://github.com/winton/universal-component#readme",
+  "homepage": "https://github.com/winton/git-copy#readme",
   "devDependencies": {
     "@types/mocha": "7.0.2",
     "@types/node": "13.13.4",
