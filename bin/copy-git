@@ -1,0 +1,4 @@
+#!/usr/bin/env node
+
+require("source-map-support/register")
+require("../dist/cjs/copyGit").default.copy(process.argv.slice(2))
