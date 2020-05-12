@@ -1,6 +1,6 @@
 {
   "name": "copy-git",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Copy files from external git repos and easily pull updates",
   "bin": {
     "copy-git": "./bin/copy-git"
