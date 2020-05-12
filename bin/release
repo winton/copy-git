@@ -8,9 +8,9 @@ npm run build
 git status
 
 if [ "$PRERELEASE" == "prod" ]; then
-  npx release-it minor --ci --no-npm.publish
+  npx release-it minor --ci
 elif [ "$PRERELEASE" == "dev" ]; then
-  npx release-it patch --ci --no-npm.publish
+  npx release-it patch --ci
 else
-  npx release-it patch --ci --no-npm.publish --preRelease=$PRERELEASE
+  npx release-it patch --ci --preRelease=$PRERELEASE
 fi
