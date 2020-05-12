@@ -25,14 +25,13 @@ export class CopyConfig {
   }
 
   copy(record: CopyConfigRecord) {
-    const { dest, repo, source, transform } = record
+    record = Object.assign({}, record)
 
-    this.config = this.config.concat({
-      dest,
-      repo,
-      source,
-      transform,
-    })
+    if (!record.transform) {
+      delete record.transform
+    }
+
+    this.config = this.config.concat(record)
   }
 
   transform(index: number, record: Record<string, any>) {

@@ -97,6 +97,26 @@ describe("copyGit", () => {
       stdout: true,
     })
 
+    expect(await copyConfig.load()).toEqual([
+      {
+        dest: ".",
+        source: ["src/*.ts", "test/expect.ts"],
+        repo: "git@github.com:winton/copy-git.git",
+      },
+      {
+        dest: ".",
+        source: ["src/copyGit.ts"],
+        repo: "git@github.com:winton/copy-git.git",
+        transform: [
+          {
+            find: "CopyGit",
+            replace: "TestCopy",
+            type: "findReplace",
+          },
+        ],
+      },
+    ])
+
     const out = (
       await fs.readFile(join(fixture, "copyGit.ts"))
     ).toString()
