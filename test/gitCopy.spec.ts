@@ -35,9 +35,9 @@ describe("gitCopy", () => {
   after(clearFixture)
 
   it("copyFromGit", async () => {
-    await spawn.run(join(root, "bin/copy-git"), {
+    await spawn.run(join(root, "bin/git-copy"), {
       args: [
-        "git@github.com:winton/copy-git.git",
+        "git@github.com:winton/git-copy.git",
         "src/*.ts",
         "test/expect.ts",
         ".",
@@ -48,13 +48,13 @@ describe("gitCopy", () => {
 
     await expectFixtureFiles()
 
-    copyConfig.configPath = join(fixture, ".copygit.yml")
+    copyConfig.configPath = join(fixture, ".gitcopy.yml")
 
     expect(await copyConfig.load()).toEqual([
       {
         dest: ".",
         source: ["src/*.ts", "test/expect.ts"],
-        repo: "git@github.com:winton/copy-git.git",
+        repo: "git@github.com:winton/git-copy.git",
       },
     ])
 
@@ -63,7 +63,7 @@ describe("gitCopy", () => {
       cwd: fixture,
     })
 
-    await spawn.run(join(root, "bin/copy-git"), {
+    await spawn.run(join(root, "bin/git-copy"), {
       cwd: fixture,
       stdout: true,
     })
@@ -75,7 +75,7 @@ describe("gitCopy", () => {
       cwd: fixture,
     })
 
-    await spawn.run(join(root, "bin/copy-git"), {
+    await spawn.run(join(root, "bin/git-copy"), {
       args: ["src/gitCopy.ts"],
       cwd: fixture,
       stdout: true,
@@ -92,7 +92,7 @@ describe("gitCopy", () => {
 
     await copyConfig.save()
 
-    await spawn.run(join(root, "bin/copy-git"), {
+    await spawn.run(join(root, "bin/git-copy"), {
       args: ["src/gitCopy.ts"],
       cwd: fixture,
       stdout: true,

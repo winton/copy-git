@@ -11,7 +11,7 @@ export interface CopyConfigRecord {
 
 export class CopyConfig {
   config: CopyConfigRecord[] = []
-  configPath = path.resolve(".copygit.yml")
+  configPath = path.resolve(".gitcopy.yml")
 
   async load() {
     if (!(await fs.pathExists(this.configPath))) {

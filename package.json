@@ -1,10 +1,8 @@
 {
-  "name": "copy-git",
-  "version": "0.0.4",
+  "name": "git-copy",
+  "version": "0.0.5",
   "description": "Copy files from external git repos and easily pull updates",
-  "bin": {
-    "copy-git": "./bin/copy-git"
-  },
+  "bin": {},
   "scripts": {
     "build": "tsc -b",
     "watch": "tsc -b -w",
@@ -14,14 +12,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/winton/copy-git.git"
+    "url": "git+ssh://git@github.com/winton/git-copy.git"
   },
   "author": "Winton Welsh <mail@wintoni.us>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/winton/copy-git/issues"
+    "url": "https://github.com/winton/git-copy/issues"
   },
-  "homepage": "https://github.com/winton/copy-git#readme",
+  "homepage": "https://github.com/winton/git-copy#readme",
   "devDependencies": {
     "@types/mocha": "7.0.2",
     "@types/node": "13.13.4",

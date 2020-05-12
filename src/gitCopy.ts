@@ -9,7 +9,7 @@ import * as transforms from "./transforms"
 
 export const GIT_REGEX = /\.git(\/|$)/
 
-export class CopyGit {
+export class GitCopy {
   tmpCache: Record<string, tmp.DirectoryResult> = {}
 
   async copy(args: string[]) {
@@ -213,4 +213,4 @@ export class CopyGit {
   }
 }
 
-export default new CopyGit()
+export default new GitCopy()
