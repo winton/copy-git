@@ -119,6 +119,12 @@ export class GitCopy {
       })
     }
 
+    await spawn.run("rm", {
+      args: ["-rf", ".git"],
+      cwd: tmpDir.path,
+      stdout: true,
+    })
+
     return tmpDir
   }
 
