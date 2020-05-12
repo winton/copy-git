@@ -68,6 +68,8 @@ export class CopyGit {
       transformDir,
     } = await this.transform(record, tmpDir)
 
+    await fs.mkdirp(path.resolve(dest))
+
     const destCpCmd = /* bash */ `
       shopt -s dotglob;
       cp -r \
