@@ -8,29 +8,43 @@ Copy files from external git repos and easily pull updates.
 npm install copy-git
 ```
 
-## Copy files from a git repo
+## Copy from git to local
+
+### Usage
 
 > `copy-git [srcRepo] [srcPath...] [destPath]`
 
-For example, let's copy this project's source files to your current directory:
+### Examples
+
+Copy this project's `src` files to your current directory:
 
 ```bash
 copy-git git@github.com:winton/copy-git.git "src/*.ts" .
 ```
 
-The `copy-git` command generates `.copygit.yml`, allows you to [automatically update](#automatic-update).
+The command generates a file `.copygit.yml`, which allows you to [update copied files](#update-copied-files).
 
-Add a hashtag + ID to the end of `srcRepo` to hardcode a specific commit version.
+Add a pound sign at the end of the `srcRepo` to copy files from a specific version:
 
-## Automatic update
+```bash
+copy-git git@github.com:winton/copy-git.git#6093d11 "src/*.ts" .
+```
 
-Run `copy-git` from a directory that has a `.copygit.yml` file:
+## Update copied files
+
+### Usage
+
+> `copy-git [destPath...]`
+
+### Examples
+
+To update all copied files, run `copy-git` without arguments from a directory that has a `.copygit.yml` file:
 
 ```bash
 copy-git
 ```
 
-You may also specify certain paths to update:
+You may also limit the updates to certain files:
 
 ```bash
 copy-git src/*
@@ -38,7 +52,11 @@ copy-git src/*
 
 ## Find/replace after copy
 
+### Usage
+
 > `copy-git [srcRepo] [srcPath...] [destPath] -f FIND -r REPLACE`
+
+### Examples
 
 The `-f` (find) and `-r` (replace) options transform copied files:
 
