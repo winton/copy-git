@@ -11,10 +11,12 @@ export function findReplace(
   t: FindReplace
 ) {
   let find: string | RegExp = t.find
-  const regex = t.find.match(/\/([^/]+)\/([gimsuy]{0,3})/)
+  const regex = t.find.match(/\/([^/]+)\/([gimsuy]{0,6})/)
 
   if (regex) {
     find = new RegExp(regex[1], regex[2])
+  } else {
+    find = new RegExp(t.find, "g")
   }
 
   return out.replace(find, t.replace)

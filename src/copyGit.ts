@@ -225,6 +225,7 @@ export class CopyGit {
     })
 
     const transformCpCmd = /* bash */ `
+        shopt -s dotglob;
         cp -r \
           ${source.join(" ")} \
           ${transformDir.path}
