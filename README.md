@@ -10,25 +10,27 @@ npm install copy-git
 
 ## Copy files from a git repo
 
-> Usage: `copy-git [srcRepo] [srcPath...] [destPath]`
+> `copy-git [srcRepo] [srcPath...] [destPath]`
+
+For example, let's copy this project's source files to your current directory:
 
 ```bash
-copy-git git@github.com:winton/copy-git.git "src/*.ts" src/copyGit
+copy-git git@github.com:winton/copy-git.git "src/*.ts" .
 ```
 
-The `copy-git` command generates `.copygit.yml`, which keeps record of file sources and destinations.
+The `copy-git` command generates `.copygit.yml`, allows you to [automatically update](#automatic-update).
 
 Add a hashtag + ID to the end of `srcRepo` to hardcode a specific commit version.
 
-## Update copied files
+## Automatic update
 
-Run `copy-git` without arguments within a directory that has a `.copygit.yml` file:
+Run `copy-git` from a directory that has a `.copygit.yml` file:
 
 ```bash
 copy-git
 ```
 
-You may also specify paths to update:
+You may also specify certain paths to update:
 
 ```bash
 copy-git src/*
@@ -36,26 +38,16 @@ copy-git src/*
 
 ## Find/replace after copy
 
-> Usage: `copy-git [srcRepo] [srcPath...] [destPath] -f FIND -r REPLACE`
+> `copy-git [srcRepo] [srcPath...] [destPath] -f FIND -r REPLACE`
+
+The `-f` (find) and `-r` (replace) options transform copied files:
 
 ```bash
 copy-git git@github.com:winton/copy-git.git "src/*.ts" src/copyGit -f CopyGit -r CopyGit2
 ```
 
-The `-f` option can also be a regular expression:
+The `-f` option may also be a regular expression:
 
 ```bash
 copy-git git@github.com:winton/copy-git.git "src/*.ts" src/copyGit -f "/([cC])opyGit/g" -r "$1opyGit2"
 ```
-
-## Copy files upstream
-
-> Usage: `copy-git [srcRepo] [srcPath...] [destPath]`
-
-Reverse the arguments to copy local files to an external git repo:
-
-```bash
-copy-git src/copyGit/*.ts src git@github.com:winton/copy-git.git
-```
-
-You must have write access to the `destRepo`. After you are prompted for a branch name and commit message, changes automatically commit and push.
