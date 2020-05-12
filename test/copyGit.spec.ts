@@ -14,8 +14,8 @@ async function expectFixtureFiles(
   expect(await ls(fixture, ["*.ts"])).toEqual(
     files || [
       "copyConfig.ts",
+      "copyGit.ts",
       "expect.ts",
-      "gitCopy.ts",
       "ls.ts",
       "spawn.ts",
       "transforms.ts",
@@ -30,7 +30,7 @@ async function clearFixture() {
   })
 }
 
-describe("gitCopy", () => {
+describe("copyGit", () => {
   beforeEach(clearFixture)
   after(clearFixture)
 
@@ -76,30 +76,30 @@ describe("gitCopy", () => {
     })
 
     await spawn.run(join(root, "bin/copy-git"), {
-      args: ["src/gitCopy.ts"],
+      args: ["src/copyGit.ts"],
       cwd: fixture,
       stdout: true,
     })
 
-    await expectFixtureFiles(["gitCopy.ts"])
+    await expectFixtureFiles(["copyGit.ts"])
     await copyConfig.load()
 
     copyConfig.transform(0, {
       type: "findReplace",
-      find: "GitCopy",
+      find: "CopyGit",
       replace: "TestCopy",
     })
 
     await copyConfig.save()
 
     await spawn.run(join(root, "bin/copy-git"), {
-      args: ["src/gitCopy.ts"],
+      args: ["src/copyGit.ts"],
       cwd: fixture,
       stdout: true,
     })
 
     const out = (
-      await fs.readFile(join(fixture, "gitCopy.ts"))
+      await fs.readFile(join(fixture, "copyGit.ts"))
     ).toString()
 
     expect(out.includes("class TestCopy {")).toBeTruthy()
