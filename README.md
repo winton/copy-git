@@ -10,8 +10,9 @@ npm install copy-git
 
 ## Copy files from a git repo
 
+Usage: `# copy-git [srcRepo] [srcPath...] [destPath]`
+
 ```bash
-# copy-git [srcRepo] [srcPath...] [destPath]
 copy-git git@github.com:winton/copy-git.git "src/*.ts" src/copyGit
 ```
 
@@ -33,12 +34,21 @@ You may also specify paths to update:
 copy-git src/*
 ```
 
+## Find/replace after copy
+
+Usage: `# copy-git [srcRepo] [srcPath...] [destPath] -f FIND -r REPLACE`
+
+```bash
+copy-git git@github.com:winton/copy-git.git "src/*.ts" src/copyGit -f CopyGit -r MyCopyGit
+```
+
 ## Copy files upstream
+
+Usage: `# copy-git [srcRepo] [srcPath...] [destPath]`
 
 Reverse the arguments to copy local files to an external git repo:
 
 ```bash
-# copy-git [srcPath...] [destPath] [destRepo]
 copy-git src/copyGit/*.ts src git@github.com:winton/copy-git.git
 ```
 

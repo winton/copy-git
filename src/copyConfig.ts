@@ -25,12 +25,13 @@ export class CopyConfig {
   }
 
   copy(record: CopyConfigRecord) {
-    const { dest, repo, source } = record
+    const { dest, repo, source, transform } = record
 
     this.config = this.config.concat({
       dest,
       repo,
       source,
+      transform,
     })
   }
 

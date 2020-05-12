@@ -13,7 +13,8 @@ export class CopyGit {
   tmpCache: Record<string, tmp.DirectoryResult> = {}
 
   async copy(args: string[]) {
-    args = args.concat([])
+    let transform: CopyConfigRecord["transform"]
+    ;[args, transform] = this.parseArgs(args.concat([]))
 
     if (args[0]?.match(GIT_REGEX)) {
       const dest = args.pop()
@@ -22,12 +23,18 @@ export class CopyGit {
         repo: args[0],
         dest,
         source: args.slice(1),
+        transform,
       })
     } else if (args[args.length - 1]?.match(GIT_REGEX)) {
       const repo = args.pop()
       const dest = args.pop()
 
-      await this.copyFromLocal({ repo, dest, source: args })
+      await this.copyFromLocal({
+        repo,
+        dest,
+        source: args,
+        transform,
+      })
     } else {
       await this.replayCopies(args)
     }
@@ -62,6 +69,7 @@ export class CopyGit {
     } = await this.transform(record, tmpDir)
 
     const destCpCmd = /* bash */ `
+      shopt -s dotglob;
       cp -r \
         ${sourcePaths} \
         ${path.resolve(dest)}
@@ -126,6 +134,43 @@ export class CopyGit {
     })
 
     return tmpDir
+  }
+
+  parseArgs(
+    args: string[]
+  ): [string[], CopyConfigRecord["transform"]] {
+    const options: Record<string, string[]> = {}
+    const optionRegex = /^-\w$/
+
+    let lastMatch: boolean
+
+    args = args
+      .map((arg, i) => {
+        if (lastMatch) {
+          lastMatch = false
+        } else if (arg.match(optionRegex) && args[i + 1]) {
+          lastMatch = true
+          options[arg] = options[arg] || []
+          options[arg].push(args[i + 1])
+        } else {
+          return arg
+        }
+      })
+      .filter((a) => a)
+
+    const transform = (options["-f"] || [])
+      .map((find: string, i) => {
+        if (options["-r"] && options["-r"][i]) {
+          return {
+            type: "findReplace",
+            find,
+            replace: options["-r"][i],
+          }
+        }
+      })
+      .filter((t) => t)
+
+    return [args, transform.length ? transform : undefined]
   }
 
   async replayCopies(match: string[]) {

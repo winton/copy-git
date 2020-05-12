@@ -82,18 +82,17 @@ describe("copyGit", () => {
     })
 
     await expectFixtureFiles(["copyGit.ts"])
-    await copyConfig.load()
-
-    copyConfig.transform(0, {
-      type: "findReplace",
-      find: "CopyGit",
-      replace: "TestCopy",
-    })
-
-    await copyConfig.save()
 
     await spawn.run(join(root, "bin/copy-git"), {
-      args: ["src/copyGit.ts"],
+      args: [
+        "git@github.com:winton/copy-git.git",
+        "src/copyGit.ts",
+        ".",
+        "-f",
+        "CopyGit",
+        "-r",
+        "TestCopy",
+      ],
       cwd: fixture,
       stdout: true,
     })
