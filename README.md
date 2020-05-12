@@ -69,3 +69,5 @@ The `-f` option may also be a regular expression:
 ```bash
 copy-git git@github.com:winton/copy-git.git "src/*.ts" src/copyGit -f "/([cC])opyGit/g" -r "$1opyGit2"
 ```
+
+You may specify more than one find/replace by adding more `-f FIND -r REPLACE` arguments.
