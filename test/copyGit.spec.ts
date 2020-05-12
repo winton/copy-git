@@ -89,9 +89,9 @@ describe("copyGit", () => {
         "src/copyGit.ts",
         ".",
         "-f",
-        "CopyGit",
+        "/([cC])opyGit/g",
         "-r",
-        "TestCopy",
+        "$1opyGitCooler",
       ],
       cwd: fixture,
       stdout: true,
@@ -109,8 +109,8 @@ describe("copyGit", () => {
         repo: "git@github.com:winton/copy-git.git",
         transform: [
           {
-            find: "CopyGit",
-            replace: "TestCopy",
+            find: "/([cC])opyGit/g",
+            replace: "$1opyGitCooler",
             type: "findReplace",
           },
         ],
@@ -121,6 +121,8 @@ describe("copyGit", () => {
       await fs.readFile(join(fixture, "copyGit.ts"))
     ).toString()
 
-    expect(out.includes("class TestCopy {")).toBeTruthy()
+    expect(
+      out.includes("class CopyGitCooler {")
+    ).toBeTruthy()
   }).timeout(10000)
 })

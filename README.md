@@ -39,7 +39,13 @@ copy-git src/*
 Usage: `# copy-git [srcRepo] [srcPath...] [destPath] -f FIND -r REPLACE`
 
 ```bash
-copy-git git@github.com:winton/copy-git.git "src/*.ts" src/copyGit -f CopyGit -r MyCopyGit
+copy-git git@github.com:winton/copy-git.git "src/*.ts" src/copyGit -f CopyGit -r CopyGit2
+```
+
+The `-f` option can also be a regular expression:
+
+```bash
+copy-git git@github.com:winton/copy-git.git "src/*.ts" src/copyGit -f "/([cC])opyGit/g" -r "$1opyGit2"
 ```
 
 ## Copy files upstream

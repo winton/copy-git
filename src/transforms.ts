@@ -10,8 +10,12 @@ export function findReplace(
   path: string,
   t: FindReplace
 ) {
-  return out.replace(
-    new RegExp(t.find, t.flags || "gm"),
-    t.replace
-  )
+  let find: string | RegExp = t.find
+  const regex = t.find.match(/\/([^/]+)\/([gimsuy]{0,3})/)
+
+  if (regex) {
+    find = new RegExp(regex[1], regex[2])
+  }
+
+  return out.replace(find, t.replace)
 }
