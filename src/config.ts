@@ -8,23 +8,18 @@ export interface IncomingConfigRecord {
   dest: string
 }
 
-export interface OutgoingConfigRecord {
-  source: string[]
-  dest: string
-}
-
 export interface ConfigRecord {
-  incoming: IncomingConfigRecord[]
-  outgoing?: Record<string, OutgoingConfigRecord>
+  copies: IncomingConfigRecord[]
+  inputs?: Record<string, Record<string, any>>
 }
 
 export class Config {
-  data: ConfigRecord = { incoming: [] }
+  data: ConfigRecord = { copies: [] }
   path = path.resolve(".copygit.yml")
 
   async load() {
     if (!(await fs.pathExists(this.path))) {
-      return { incoming: [] }
+      return { copies: [] }
     }
 
     const raw = await fs.readFile(this.path)
@@ -33,9 +28,9 @@ export class Config {
     return this.data
   }
 
-  incoming(record: IncomingConfigRecord) {
+  pushCopy(record: IncomingConfigRecord) {
     record = Object.assign({}, record)
-    this.data.incoming = this.data.incoming.concat(record)
+    this.data.copies = this.data.copies.concat(record)
   }
 
   async save() {

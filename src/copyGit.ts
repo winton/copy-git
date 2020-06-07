@@ -3,7 +3,6 @@ import fs from "fs-extra"
 import tmp from "tmp-promise"
 
 import config, { IncomingConfigRecord } from "./config"
-import ls from "./ls"
 import spawn from "./spawn"
 
 export const GIT_REGEX = /\.git(\/|$)/
@@ -12,43 +11,22 @@ export class CopyGit {
   tmpCache: Record<string, tmp.DirectoryResult> = {}
 
   async copy(args: string[]) {
-    if (args[0]?.match(GIT_REGEX)) {
-      const dest = args.pop()
+    const dest = args.pop()
 
-      await this.copyFromGit({
-        repo: args[0],
-        dest,
-        source: args.slice(1),
-      })
-    } else {
-      await this.replayCopies(args)
-    }
+    await this.copyFromGit({
+      repo: args[0],
+      dest,
+      source: args.slice(1),
+    })
   }
 
-  async copyFromGitBasic(
-    record: IncomingConfigRecord,
-    match: string[] = undefined
-  ) {
+  async copyFromGitBasic(record: IncomingConfigRecord) {
     if (!record.source.length) {
-      return
+      record.source = ["*"]
     }
 
     const { dest, repo } = record
     const tmpDir = await this.clone(repo)
-
-    if (match && match.length) {
-      record.source = await this.match(
-        tmpDir.path,
-        match,
-        record.source
-      )
-    }
-
-    if (!record.source.length) {
-      return
-    }
-
-    await fs.mkdirp(path.resolve(dest))
 
     const destCpCmd = /* bash */ `
       shopt -s dotglob;
@@ -71,7 +49,7 @@ export class CopyGit {
 
     await Promise.all([tmpDir.cleanup(), config.load()])
 
-    config.incoming(record)
+    config.pushCopy(record)
     await config.save()
   }
 
@@ -110,41 +88,6 @@ export class CopyGit {
     })
 
     return tmpDir
-  }
-
-  async replayCopies(match: string[]) {
-    const { incoming } = await config.load()
-
-    for (const record of incoming) {
-      await this.copyFromGitBasic(record, match)
-    }
-
-    await Promise.all(
-      Object.values(this.tmpCache).map((tmpDir) =>
-        tmpDir.cleanup()
-      )
-    )
-  }
-
-  async match(
-    cwd: string,
-    match: string[],
-    source: string[]
-  ) {
-    const [matches, sources] = await Promise.all([
-      ls(cwd, match),
-      ls(cwd, source),
-    ])
-
-    const matchCache = {}
-    const sourceCache = {}
-
-    matches.forEach((k) => (matchCache[k] = k))
-    sources.forEach((k) => (sourceCache[k] = k))
-
-    return Object.keys(matchCache)
-      .map((k) => sourceCache[k])
-      .filter((k) => k)
   }
 }
 

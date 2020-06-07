@@ -6,6 +6,7 @@ import spawn from "../src/spawn"
 
 const root = join(__dirname, "../")
 const fixture = join(root, "test/fixture")
+const repo = "git@github.com:winton/copy-git.git"
 
 async function expectFixtureFiles(
   files: string[] = undefined
@@ -34,12 +35,7 @@ describe("copyGit", () => {
 
   it("copyFromGit", async () => {
     await spawn.run(join(root, "bin/copy-git"), {
-      args: [
-        "git@github.com:winton/copy-git.git",
-        "src/*.ts",
-        "test/expect.ts",
-        ".",
-      ],
+      args: [repo, "src/*.ts", "test/expect.ts", "."],
       cwd: fixture,
       stdout: true,
     })
@@ -49,11 +45,11 @@ describe("copyGit", () => {
     config.path = join(fixture, ".copygit.yml")
 
     expect(await config.load()).toEqual({
-      incoming: [
+      copies: [
         {
           dest: ".",
           source: ["src/*.ts", "test/expect.ts"],
-          repo: "git@github.com:winton/copy-git.git",
+          repo,
         },
       ],
     })
@@ -64,19 +60,7 @@ describe("copyGit", () => {
     })
 
     await spawn.run(join(root, "bin/copy-git"), {
-      cwd: fixture,
-      stdout: true,
-    })
-
-    await expectFixtureFiles()
-
-    await spawn.run("sh", {
-      args: ["-c", "rm *.ts"],
-      cwd: fixture,
-    })
-
-    await spawn.run(join(root, "bin/copy-git"), {
-      args: ["src/copyGit.ts"],
+      args: [repo, "src/copyGit.ts", "."],
       cwd: fixture,
       stdout: true,
     })
