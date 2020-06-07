@@ -12,7 +12,7 @@ async function expectFixtureFiles(
 ) {
   expect(await ls(fixture, ["*.ts"])).toEqual(
     files || [
-      "copyConfig.ts",
+      "config.ts",
       "copyGit.ts",
       "expect.ts",
       "ls.ts",
