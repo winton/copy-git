@@ -2,10 +2,7 @@ import path from "path"
 import fs from "fs-extra"
 import tmp from "tmp-promise"
 
-import copyConfig, {
-  CopyConfigRecord,
-  IncomingConfigRecord,
-} from "./copyConfig"
+import config, { IncomingConfigRecord } from "./config"
 import ls from "./ls"
 import spawn from "./spawn"
 
@@ -15,8 +12,6 @@ export class CopyGit {
   tmpCache: Record<string, tmp.DirectoryResult> = {}
 
   async copy(args: string[]) {
-    args = this.parseArgs(args.concat([]))
-
     if (args[0]?.match(GIT_REGEX)) {
       const dest = args.pop()
 
@@ -53,14 +48,12 @@ export class CopyGit {
       return
     }
 
-    const sourcePaths = record.source.join(" ")
-
     await fs.mkdirp(path.resolve(dest))
 
     const destCpCmd = /* bash */ `
       shopt -s dotglob;
       cp -r \
-        ${sourcePaths} \
+        ${record.source.join(" ")} \
         ${path.resolve(dest)}
     `
 
@@ -76,13 +69,11 @@ export class CopyGit {
   async copyFromGit(record: IncomingConfigRecord) {
     const tmpDir = await this.copyFromGitBasic(record)
 
-    await Promise.all([tmpDir.cleanup(), copyConfig.load()])
+    await Promise.all([tmpDir.cleanup(), config.load()])
 
-    copyConfig.incoming(record)
-    await copyConfig.save()
+    config.incoming(record)
+    await config.save()
   }
-
-  async copyFromLocal(record: CopyConfigRecord) {}
 
   async clone(repo: string) {
     if (this.tmpCache[repo]) {
@@ -121,29 +112,8 @@ export class CopyGit {
     return tmpDir
   }
 
-  parseArgs(args: string[]): string[] {
-    const options: Record<string, string[]> = {}
-    const optionRegex = /^-\w$/
-
-    let lastMatch: boolean
-
-    return args
-      .map((arg, i) => {
-        if (lastMatch) {
-          lastMatch = false
-        } else if (arg.match(optionRegex) && args[i + 1]) {
-          lastMatch = true
-          options[arg] = options[arg] || []
-          options[arg].push(args[i + 1])
-        } else {
-          return arg
-        }
-      })
-      .filter((a) => a)
-  }
-
   async replayCopies(match: string[]) {
-    const { incoming } = await copyConfig.load()
+    const { incoming } = await config.load()
 
     for (const record of incoming) {
       await this.copyFromGitBasic(record, match)

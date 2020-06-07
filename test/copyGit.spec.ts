@@ -1,7 +1,6 @@
 import { join } from "path"
-import fs from "fs-extra"
 import expect from "./expect"
-import copyConfig from "../src/copyConfig"
+import config from "../src/config"
 import ls from "../src/ls"
 import spawn from "../src/spawn"
 
@@ -18,7 +17,6 @@ async function expectFixtureFiles(
       "expect.ts",
       "ls.ts",
       "spawn.ts",
-      "transforms.ts",
     ]
   )
 }
@@ -48,9 +46,9 @@ describe("copyGit", () => {
 
     await expectFixtureFiles()
 
-    copyConfig.configPath = join(fixture, ".copygit.yml")
+    config.path = join(fixture, ".copygit.yml")
 
-    expect(await copyConfig.load()).toEqual({
+    expect(await config.load()).toEqual({
       incoming: [
         {
           dest: ".",
