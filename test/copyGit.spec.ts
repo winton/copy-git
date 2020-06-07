@@ -50,13 +50,15 @@ describe("copyGit", () => {
 
     copyConfig.configPath = join(fixture, ".copygit.yml")
 
-    expect(await copyConfig.load()).toEqual([
-      {
-        dest: ".",
-        source: ["src/*.ts", "test/expect.ts"],
-        repo: "git@github.com:winton/copy-git.git",
-      },
-    ])
+    expect(await copyConfig.load()).toEqual({
+      incoming: [
+        {
+          dest: ".",
+          source: ["src/*.ts", "test/expect.ts"],
+          repo: "git@github.com:winton/copy-git.git",
+        },
+      ],
+    })
 
     await spawn.run("sh", {
       args: ["-c", "rm *.ts"],
@@ -82,47 +84,5 @@ describe("copyGit", () => {
     })
 
     await expectFixtureFiles(["copyGit.ts"])
-
-    await spawn.run(join(root, "bin/copy-git"), {
-      args: [
-        "git@github.com:winton/copy-git.git",
-        "src/copyGit.ts",
-        ".",
-        "-f",
-        "/([cC])opyGit/g",
-        "-r",
-        "$1opyGitCooler",
-      ],
-      cwd: fixture,
-      stdout: true,
-    })
-
-    expect(await copyConfig.load()).toEqual([
-      {
-        dest: ".",
-        source: ["src/*.ts", "test/expect.ts"],
-        repo: "git@github.com:winton/copy-git.git",
-      },
-      {
-        dest: ".",
-        source: ["src/copyGit.ts"],
-        repo: "git@github.com:winton/copy-git.git",
-        transform: [
-          {
-            find: "/([cC])opyGit/g",
-            replace: "$1opyGitCooler",
-            type: "findReplace",
-          },
-        ],
-      },
-    ])
-
-    const out = (
-      await fs.readFile(join(fixture, "copyGit.ts"))
-    ).toString()
-
-    expect(
-      out.includes("class CopyGitCooler {")
-    ).toBeTruthy()
   }).timeout(10000)
 })

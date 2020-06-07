@@ -1,4 +1,4 @@
-import { spawn as ptyRun, IPty } from "node-pty"
+import { spawn as ptySpawn, IPty } from "node-pty"
 
 export interface SpawnOutput {
   code: number
@@ -14,7 +14,7 @@ export interface SpawnOptions {
 }
 
 class Spawn {
-  async runWithPty(
+  async rawRun(
     command: string,
     options: SpawnOptions = {}
   ): Promise<[IPty, Promise<SpawnOutput>]> {
@@ -23,7 +23,7 @@ class Spawn {
     const cols = process.stdout.columns
     const rows = process.stdout.rows
 
-    const pty = ptyRun(command, args, {
+    const pty = ptySpawn(command, args, {
       cols,
       cwd,
       env,
@@ -54,10 +54,7 @@ class Spawn {
     command: string,
     options: SpawnOptions = {}
   ): Promise<SpawnOutput> {
-    const [, promise] = await this.runWithPty(
-      command,
-      options
-    )
+    const [, promise] = await this.rawRun(command, options)
     return await promise
   }
 }

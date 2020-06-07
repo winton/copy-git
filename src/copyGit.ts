@@ -2,10 +2,12 @@ import path from "path"
 import fs from "fs-extra"
 import tmp from "tmp-promise"
 
-import copyConfig, { CopyConfigRecord } from "./copyConfig"
+import copyConfig, {
+  CopyConfigRecord,
+  IncomingConfigRecord,
+} from "./copyConfig"
 import ls from "./ls"
 import spawn from "./spawn"
-import * as transforms from "./transforms"
 
 export const GIT_REGEX = /\.git(\/|$)/
 
@@ -13,8 +15,7 @@ export class CopyGit {
   tmpCache: Record<string, tmp.DirectoryResult> = {}
 
   async copy(args: string[]) {
-    let transform: CopyConfigRecord["transform"]
-    ;[args, transform] = this.parseArgs(args.concat([]))
+    args = this.parseArgs(args.concat([]))
 
     if (args[0]?.match(GIT_REGEX)) {
       const dest = args.pop()
@@ -23,17 +24,6 @@ export class CopyGit {
         repo: args[0],
         dest,
         source: args.slice(1),
-        transform,
-      })
-    } else if (args[args.length - 1]?.match(GIT_REGEX)) {
-      const repo = args.pop()
-      const dest = args.pop()
-
-      await this.copyFromLocal({
-        repo,
-        dest,
-        source: args,
-        transform,
       })
     } else {
       await this.replayCopies(args)
@@ -41,7 +31,7 @@ export class CopyGit {
   }
 
   async copyFromGitBasic(
-    record: CopyConfigRecord,
+    record: IncomingConfigRecord,
     match: string[] = undefined
   ) {
     if (!record.source.length) {
@@ -63,10 +53,7 @@ export class CopyGit {
       return
     }
 
-    const {
-      sourcePaths,
-      transformDir,
-    } = await this.transform(record, tmpDir)
+    const sourcePaths = record.source.join(" ")
 
     await fs.mkdirp(path.resolve(dest))
 
@@ -83,19 +70,15 @@ export class CopyGit {
       stdout: true,
     })
 
-    if (transformDir) {
-      await transformDir.cleanup()
-    }
-
     return tmpDir
   }
 
-  async copyFromGit(record: CopyConfigRecord) {
+  async copyFromGit(record: IncomingConfigRecord) {
     const tmpDir = await this.copyFromGitBasic(record)
 
     await Promise.all([tmpDir.cleanup(), copyConfig.load()])
 
-    copyConfig.copy(record)
+    copyConfig.incoming(record)
     await copyConfig.save()
   }
 
@@ -138,15 +121,13 @@ export class CopyGit {
     return tmpDir
   }
 
-  parseArgs(
-    args: string[]
-  ): [string[], CopyConfigRecord["transform"]] {
+  parseArgs(args: string[]): string[] {
     const options: Record<string, string[]> = {}
     const optionRegex = /^-\w$/
 
     let lastMatch: boolean
 
-    args = args
+    return args
       .map((arg, i) => {
         if (lastMatch) {
           lastMatch = false
@@ -159,26 +140,12 @@ export class CopyGit {
         }
       })
       .filter((a) => a)
-
-    const transform = (options["-f"] || [])
-      .map((find: string, i) => {
-        if (options["-r"] && options["-r"][i]) {
-          return {
-            type: "findReplace",
-            find,
-            replace: options["-r"][i],
-          }
-        }
-      })
-      .filter((t) => t)
-
-    return [args, transform.length ? transform : undefined]
   }
 
   async replayCopies(match: string[]) {
-    const config = await copyConfig.load()
+    const { incoming } = await copyConfig.load()
 
-    for (const record of config) {
+    for (const record of incoming) {
       await this.copyFromGitBasic(record, match)
     }
 
@@ -208,56 +175,6 @@ export class CopyGit {
     return Object.keys(matchCache)
       .map((k) => sourceCache[k])
       .filter((k) => k)
-  }
-
-  async transform(
-    record: CopyConfigRecord,
-    tmpDir: tmp.DirectoryResult
-  ) {
-    const { source, transform } = record
-
-    if (!transform) {
-      return { sourcePaths: source.join(" ") }
-    }
-
-    const transformDir = await tmp.dir({
-      unsafeCleanup: true,
-    })
-
-    const transformCpCmd = /* bash */ `
-        shopt -s dotglob;
-        cp -r \
-          ${source.join(" ")} \
-          ${transformDir.path}
-      `
-
-    await spawn.run("sh", {
-      args: ["-c", transformCpCmd],
-      cwd: tmpDir.path,
-      stdout: true,
-    })
-
-    const paths = await ls(transformDir.path)
-
-    for (const relPath of paths) {
-      const p = path.join(transformDir.path, relPath)
-      let out = (await fs.readFile(p)).toString()
-
-      for (const t of transform) {
-        if (transforms[t.type]) {
-          out = await transforms[t.type](out, p, t)
-        }
-      }
-
-      if (out) {
-        await fs.writeFile(p, out)
-      }
-    }
-
-    return {
-      sourcePaths: transformDir.path + "/*",
-      transformDir,
-    }
   }
 }
 
